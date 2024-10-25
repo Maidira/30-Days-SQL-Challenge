@@ -93,8 +93,28 @@ SELECT
 FROM CTE
 WHERE rk =1;
 
+-- Another solution
+SELECT 
+    s.country, 
+    p.product_name, 
+    p.price
+FROM 
+    products p
+JOIN 
+    suppliers s ON s.supplier_id = p.supplier_id
+WHERE 
+    p.price = (
+        SELECT MAX(p2.price)
+        FROM products p2
+        JOIN suppliers s2 ON s2.supplier_id = p2.supplier_id
+        WHERE s2.country = s.country
+    )
+ORDER BY 
+    s.country;
 
---Q2
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------                QUESTION 2                    -----------------------------------------------------------------------------------------
 CREATE TABLE Customers (
     Customer_id INT PRIMARY KEY,
     Customer_Name VARCHAR(100),
@@ -141,4 +161,25 @@ JOIN transaction AS t
 ON c.customer_id = t.customer_id
 WHERE EXTRACT(YEAR FROM t.Transaction_Date) =  EXTRACT(YEAR FROM current_date) 
 GROUP BY 1, 2;
+
+--Another solution
+WITH this_year_transactions AS (
+    SELECT 
+        customer_id,
+        amount
+    FROM 
+        transaction
+    WHERE 
+        EXTRACT(YEAR FROM transaction_date) = EXTRACT(YEAR FROM current_date)
+)
+SELECT 
+    c.customer_name,
+    c.customer_id,
+    SUM(t.amount) AS total_amt
+FROM 
+    customers AS c
+JOIN 
+    this_year_transactions AS t ON c.customer_id = t.customer_id
+GROUP BY 
+    c.customer_name, c.customer_id;
 
